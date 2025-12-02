@@ -5,7 +5,7 @@ import { analyzeImage, fileToBase64 } from '../utils/gemini';
 const ImageUpload = ({ onAnalysisComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [apiKey, setApiKey] = useState(localStorage.getItem('openrouter_api_key') || '');
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -18,7 +18,7 @@ const ImageUpload = ({ onAnalysisComplete }) => {
 
   const processImage = async (file) => {
     if (!apiKey) {
-      setError('Please enter your Gemini API key first');
+      setError('Please enter your OpenRouter API key first');
       return;
     }
 
@@ -27,12 +27,12 @@ const ImageUpload = ({ onAnalysisComplete }) => {
 
     try {
       // Save API key to localStorage
-      localStorage.setItem('gemini_api_key', apiKey);
+      localStorage.setItem('openrouter_api_key', apiKey);
 
       // Convert file to base64
       const base64Image = await fileToBase64(file);
 
-      // Analyze image with Gemini
+      // Analyze image with OpenRouter
       const analysisResult = await analyzeImage(base64Image, apiKey);
 
       // Pass results to parent component along with the image
@@ -61,25 +61,26 @@ const ImageUpload = ({ onAnalysisComplete }) => {
         {/* API Key Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Google Gemini API Key
+            OpenRouter API Key
           </label>
           <input
             type="password"
             value={apiKey}
             onChange={handleApiKeyChange}
-            placeholder="Enter your Gemini API key"
+            placeholder="Enter your OpenRouter API key"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-xs text-gray-500 mt-1">
             Get your API key from{' '}
             <a
-              href="https://makersuite.google.com/app/apikey"
+              href="https://openrouter.ai/keys"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline"
             >
-              Google AI Studio
+              OpenRouter
             </a>
+            {' '}(Uses free Gemini 2.0 Flash model)
           </p>
         </div>
 

@@ -6,7 +6,7 @@ A comprehensive web application for loyalty program managers to catalog, analyze
 
 ### 🤖 AI-Powered OCR & Analysis
 - **Image Upload**: Upload photos via file selection or camera
-- **Automated Extraction**: Uses Google Gemini API (gemini-2.0-flash-exp) to extract:
+- **Automated Extraction**: Uses OpenRouter API with Google Gemini 2.0 Flash (free) to extract:
   - Retailer
   - Country
   - Loyalty Brand
@@ -43,7 +43,7 @@ A comprehensive web application for loyalty program managers to catalog, analyze
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn
-- Google Gemini API key
+- OpenRouter API key (free - includes access to Gemini 2.0 Flash)
 
 ### Installation
 
@@ -57,10 +57,12 @@ cd loyaltylens-app
 npm install
 ```
 
-3. Get your Gemini API key:
-   - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+3. Get your OpenRouter API key:
+   - Visit [OpenRouter](https://openrouter.ai/keys)
+   - Sign up for a free account
    - Create a new API key
    - Copy the key (you'll enter it in the app)
+   - Note: The app uses the free Gemini 2.0 Flash model via OpenRouter
 
 4. Start the development server:
 ```bash
@@ -74,7 +76,7 @@ npm run dev
 ### First Time Setup
 
 1. Navigate to the "Upload" tab
-2. Enter your Google Gemini API key (it will be saved in your browser)
+2. Enter your OpenRouter API key (it will be saved in your browser)
 3. Upload an image or take a photo of a loyalty program display
 
 ### Uploading and Analyzing
@@ -107,7 +109,13 @@ npm run dev
 
 ## API Configuration
 
-The app uses the Google Gemini API for image analysis. The API key is stored locally in your browser's localStorage. You only need to enter it once.
+The app uses OpenRouter API with the free Google Gemini 2.0 Flash model for image analysis. The API key is stored locally in your browser's localStorage. You only need to enter it once.
+
+**Why OpenRouter?**
+- Free access to Gemini 2.0 Flash model
+- No need for Google Cloud setup
+- Simple REST API
+- No credit card required for basic usage
 
 If you need to change your API key:
 1. Go to the Upload tab
@@ -155,7 +163,7 @@ loyaltylens-app/
 │   │   ├── ImageUpload.jsx        # Image upload and AI analysis
 │   │   └── ReviewForm.jsx         # Review and edit AI results
 │   ├── utils/
-│   │   ├── gemini.js              # Google Gemini API integration
+│   │   ├── gemini.js              # OpenRouter API integration (using Gemini model)
 │   │   └── storage.js             # localStorage utilities
 │   ├── App.jsx                    # Main app component
 │   ├── index.css                  # Global styles with Tailwind
@@ -174,7 +182,7 @@ loyaltylens-app/
 - **Vite**: Build tool and dev server
 - **Tailwind CSS**: Styling
 - **Lucide React**: Icons
-- **Google Gemini API**: AI-powered image analysis
+- **OpenRouter API**: AI-powered image analysis (using free Gemini 2.0 Flash model)
 - **react-masonry-css**: Masonry grid layout
 
 ## Browser Compatibility
@@ -187,10 +195,11 @@ loyaltylens-app/
 ## Troubleshooting
 
 ### AI Analysis Fails
-- Ensure your API key is correct
+- Ensure your OpenRouter API key is correct
 - Check that the image is clear and not blurry
 - Verify the image contains a loyalty program display
 - Check your internet connection
+- Verify you have credits in your OpenRouter account (free tier should be sufficient)
 
 ### Images Not Displaying
 - Images are stored as base64 in localStorage

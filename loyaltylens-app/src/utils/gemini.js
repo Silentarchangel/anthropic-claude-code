@@ -1,29 +1,10 @@
-// Google Gemini API integration for image analysis
-
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize the Gemini API
-let genAI = null;
-
-export const initializeGemini = (apiKey) => {
-  if (!apiKey) {
-    throw new Error('Gemini API key is required');
-  }
-  genAI = new GoogleGenerativeAI(apiKey);
-};
+// OpenRouter API integration for image analysis
 
 export const analyzeImage = async (imageData, apiKey) => {
   try {
-    // Initialize if not already done
-    if (!genAI && apiKey) {
-      initializeGemini(apiKey);
+    if (!apiKey) {
+      throw new Error('OpenRouter API key is required');
     }
-
-    if (!genAI) {
-      throw new Error('Gemini API not initialized. Please provide an API key.');
-    }
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Prepare the prompt for extracting loyalty program information
     const prompt = `Analyze this loyalty program display image and extract the following information in JSON format:
@@ -49,41 +30,88 @@ IMPORTANT INSTRUCTIONS:
 If this image does not appear to be a loyalty program display, return:
 {"error": "This does not appear to be a loyalty program display image"}`;
 
-    // Convert image data to the format Gemini expects
-    const imagePart = {
-      inlineData: {
-        data: imageData.split(',')[1], // Remove the data:image/...;base64, prefix
-        mimeType: imageData.split(';')[0].split(':')[1],
+    // Call OpenRouter API
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'LoyaltyLens'
       },
-    };
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-exp:free', // Free Gemini model via OpenRouter
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageData
+                }
+              }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
+      })
+    });
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        throw new Error('Invalid API key. Please check your OpenRouter API key.');
+      } else if (response.status === 402) {
+        throw new Error('Insufficient credits. Please add credits to your OpenRouter account.');
+      } else if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+
+      throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from API');
+    }
+
+    const text = data.choices[0].message.content;
 
     // Parse the JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Could not parse response from AI');
+      throw new Error('Could not parse response from AI. Please try again with a clearer image.');
     }
 
-    const data = JSON.parse(jsonMatch[0]);
+    const extractedData = JSON.parse(jsonMatch[0]);
 
-    if (data.error) {
-      throw new Error(data.error);
+    if (extractedData.error) {
+      throw new Error(extractedData.error);
     }
 
-    return data;
+    return extractedData;
   } catch (error) {
     console.error('Error analyzing image:', error);
 
     // Handle specific error types
-    if (error.message.includes('API key')) {
-      throw new Error('Invalid API key. Please check your Gemini API key.');
-    } else if (error.message.includes('safety')) {
+    if (error.message.includes('API key') || error.message.includes('401')) {
+      throw new Error('Invalid API key. Please check your OpenRouter API key.');
+    } else if (error.message.includes('credits') || error.message.includes('402')) {
+      throw new Error('Insufficient credits. Please add credits to your OpenRouter account.');
+    } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    } else if (error.message.includes('safety') || error.message.includes('content_policy')) {
       throw new Error('Image was flagged by safety filters. Please try a different image.');
-    } else if (error.message.includes('quota')) {
-      throw new Error('API quota exceeded. Please try again later.');
+    } else if (error.name === 'SyntaxError') {
+      throw new Error('Failed to parse AI response. Please try again.');
     }
 
     throw error;
